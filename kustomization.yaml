@@ -1,0 +1,14 @@
+namespace: opensearch-system
+
+resources:
+- ns.yaml
+- helm-opensearch-master.yaml
+- helm-opensearch-worker.yaml
+- helm-opensearch-dashboard.yaml
+
+patchesStrategicMerge: []
+
+secretGenerator: 
+  - name: <secret-name>
+    files:
+    - <filename>=opensearch/etc/.secrets/<file>

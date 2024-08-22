@@ -6,9 +6,24 @@ resources:
 - helm-opensearch-worker.yaml
 - helm-opensearch-dashboard.yaml
 
-patchesStrategicMerge: []
+patches : []
 
 secretGenerator: 
-  - name: <secret-name>
+  - name: usdf-opensearch-hostcert
     files:
-    - <filename>=opensearch/etc/.secrets/<file>
+    - opensearch/etc/.secrets/hostcert.pem
+
+  - name: usdf-opensearch-hostkey
+    files:
+    - opensearch/etc/.secrets/hostkey.pem
+
+  - name: usdf-opensearch-admin-pw
+    files:
+    - opensearch/etc/.secrets/admin-pw
+    literals:
+    - username=admin
+
+  - name: usdf-opensearch-tls
+    files:
+    - cert=opensearch/etc/.secrets/hostcert.pem
+    - key=opensearch/etc/.secrets/hostkey.pem

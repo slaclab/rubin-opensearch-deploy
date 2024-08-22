@@ -1,0 +1,201 @@
+---
+# Source: opensearch-dashboards/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: opensearch-opensearch-dashboards-dashboards
+  labels:
+    helm.sh/chart: opensearch-dashboards-2.19.1
+    app.kubernetes.io/name: opensearch-dashboards
+    app.kubernetes.io/instance: opensearch
+    app.kubernetes.io/version: "2.15.0"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: opensearch-dashboards/templates/rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    helm.sh/chart: opensearch-dashboards-2.19.1
+    app.kubernetes.io/name: opensearch-dashboards
+    app.kubernetes.io/instance: opensearch
+    app.kubernetes.io/version: "2.15.0"
+    app.kubernetes.io/managed-by: Helm
+  name: opensearch-opensearch-dashboards-dashboards-rolebinding
+roleRef:
+  kind: Role
+  name: opensearch-opensearch-dashboards-dashboards
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: opensearch-opensearch-dashboards-dashboards
+  namespace: default
+---
+# Source: opensearch-dashboards/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch-opensearch-dashboards
+  labels:
+    helm.sh/chart: opensearch-dashboards-2.19.1
+    app.kubernetes.io/name: opensearch-dashboards
+    app.kubernetes.io/instance: opensearch
+    app.kubernetes.io/version: "2.15.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5601
+    protocol: TCP
+    name: http
+    targetPort: 5601
+  selector:
+    app: opensearch-dashboards
+    release: "opensearch"
+---
+# Source: opensearch-dashboards/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch-opensearch-dashboards
+  labels:
+    helm.sh/chart: opensearch-dashboards-2.19.1
+    app.kubernetes.io/name: opensearch-dashboards
+    app.kubernetes.io/instance: opensearch
+    app.kubernetes.io/version: "2.15.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: opensearch-dashboards
+      release: "opensearch"
+  template:
+    metadata:
+      labels:
+        app: opensearch-dashboards
+        release: "opensearch"
+      annotations:
+    spec:
+      securityContext:
+        {}
+      serviceAccountName: opensearch-opensearch-dashboards-dashboards
+      volumes:
+        - name: hostcert
+          secret:
+            secretName: usdf-opensearch-hostcert
+        - name: hostkey
+          secret:
+            secretName: usdf-opensearch-hostkey
+      containers:
+      - name: dashboards
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+        image: "opensearchproject/opensearch-dashboards:2.15.0"
+        imagePullPolicy: "IfNotPresent"
+        readinessProbe:
+          failureThreshold: 10
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          successThreshold: 1
+          tcpSocket:
+            port: 5601
+          timeoutSeconds: 5
+        livenessProbe:
+          failureThreshold: 10
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          successThreshold: 1
+          tcpSocket:
+            port: 5601
+          timeoutSeconds: 5
+        startupProbe:
+          failureThreshold: 20
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 5601
+          timeoutSeconds: 5
+        env:
+        - name: OPENSEARCH_HOSTS
+          value: "https://opensearch-cluster-master.opensearch-system.svc.cluster.local:9200"
+        - name: SERVER_HOST
+          value: "0.0.0.0"
+        - name: OPENSEARCH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: opensearch-admin-pw
+              key: username
+        - name: OPENSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: opensearch-admin-pw
+              key: password
+        - name: COOKIE_PASS
+          valueFrom:
+            secretKeyRef:
+              name: opensearch-admin-pw
+              key: cookie
+        ports:
+        - containerPort: 5601
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 512M
+          requests:
+            cpu: 100m
+            memory: 512M
+        volumeMounts:
+          - name: hostcert
+            mountPath: /etc/grid-security/hostcert.pem
+            subPath: hostcert.pem
+          - name: hostkey
+            mountPath: /etc/grid-security/hostkey.pem
+            subPath: hostkey.pem
+---
+# Source: opensearch-dashboards/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: opensearch-opensearch-dashboards
+  labels:
+    helm.sh/chart: opensearch-dashboards-2.19.1
+    app.kubernetes.io/name: opensearch-dashboards
+    app.kubernetes.io/instance: opensearch
+    app.kubernetes.io/version: "2.15.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: optional
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 10m
+    nginx.ingress.kubernetes.io/client_max_body_size: 10m
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "360"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "360"
+    nginx.ingress.kubernetes.io/secure-backends: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "rubin-opensearch-dashboard.slac.stanford.edu"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rucio-opensearch-dashboard
+                port:
+                  number: 5601

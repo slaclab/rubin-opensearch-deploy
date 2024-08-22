@@ -15,21 +15,24 @@ dashboard:
 run-dump: 
 	kubectl kustomize .
 
-dump:  opensearch run-dump
+dump:  get-secrets opensearch dashboard run-dump
 
 run-apply:  
 	kubectl apply -k .
 
-apply:  get-secrets opensearch dashboard run-apply clean-secrets
+apply: helm get-secrets opensearch dashboard run-apply clean-secrets
 
 run-destroy:
 	kubectl delete -k .
 
-destroy:  opensearch dashboard run-destroy
+destroy: get-secrets opensearch dashboard run-destroy clean-secrets
 
 get-secrets:
 	mkdir -p opensearch/etc/.secrets
-	vault kv get --field=<secret name> secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/<secret file>
+	vault kv get --field=hostcert secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/hostcert.pem
+	vault kv get --field=hostkey secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/hostkey.pem
+	vault kv get --field=admin_pw secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/admin-pw
 
 clean-secrets:
 	rm -rf opensearch/etc/.secrets
+

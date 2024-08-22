@@ -60,7 +60,15 @@ rbac:
 # A list of secrets and their paths to mount inside the pod
 # This is useful for mounting certificates for security and for mounting
 # the X-Pack license
-secretMounts: []
+secretMounts: 
+  - name: hostcert
+    secretName: usdf-opensearch-hostcert
+    path: /etc/grid-security/hostcert.pem
+    subPath: hostcert.pem
+  - name: hostkey
+    secretName: usdf-opensearch-hostkey
+    path: /etc/grid-security/hostkey.pem
+    subPath: hostkey.pem
 #  - name: certs
 #    secretName: dashboard-certs
 #    path: /usr/share/dashboards/certs
@@ -132,7 +140,7 @@ opensearchDashboardsYml:
 priorityClassName: ""
 
 opensearchAccount:
-  secret: ""
+  secret: opensearch-admin-pw
   keyPassphrase:
     enabled: false
 
@@ -184,26 +192,15 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 
   # kubernetes.io/tls-acme: "true"
-  labels: 
-    helm.sh/chart: main-0.1.0
-    app.kubernetes.io/name: dashboard
-    app.kubernetes.io/instance: opensearch-dashboards
-    app.kubernetes.io/version: "1.29.6"
-    app.kubernetes.io/managed-by: Helm
 
   hosts:
-
   - host: rubin-opensearch-dashboard.slac.stanford.edu
     paths:
     - path: /
       backend:
         serviceName: "rucio-opensearch-dashboard"
         servicePort: ""  
-  tls: 
-    secretName: <cert>
-      hosts:
-        - rubin-opensearch-dashboard.slac.stanford.edu
-
+  
 resources:
   requests:
     cpu: "100m"

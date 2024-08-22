@@ -125,8 +125,8 @@ extraEnvs:
 - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: open-secrets
-      key: PASSWORD
+      name: opensearch-admin-pw
+      key: password
 
 # Allows you to load environment variables from kubernetes secret or config map
 envFrom: []
@@ -138,7 +138,15 @@ envFrom: []
 # A list of secrets and their paths to mount inside the pod
 # This is useful for mounting certificates for security and for mounting
 # the X-Pack license
-secretMounts: []
+secretMounts: 
+  - name: hostcert
+    secretName: opensearch_hostcert
+    path: /etc/grid-security/hostcert.pem
+    subPath: hostcert.pem
+  - name: hostkey
+    secretName: opensearch_hostkey.pem
+    path: /etc/grid-security/hostkey.pem
+    subPath: hostkey.pem
 
 hostAliases: []
 # - ip: "127.0.0.1"
@@ -417,7 +425,7 @@ tolerations: []
 # Enabling this will publically expose your OpenSearch instance.
 # Only enable this if you have security enabled on your cluster
 ingress:
-  enabled: true
+  enabled: false
   # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
   # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
   # ingressClassName: nginx
@@ -436,11 +444,6 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 
   # kubernetes.io/tls-acme: "true"
-  ingressLabels:
-    app.kubernetes.io/name: dashboard
-    app.kubernetes.io/instance: opensearch-dashboards
-    app.kubernetes.io/version: "1.29.6"
-    app.kubernetes.io/managed-by: Helm
 
   hosts:
   - host: usdf-opensearch.slac.stanford.edu
@@ -449,10 +452,7 @@ ingress:
       backend:
         serviceName: "usdf-opensearch"
         servicePort: "9200"
-  tls: 
-    secretName: <cert>
-      hosts:
-        - usdf-opensearch.slac.stanford.edu        
+    
 
 nameOverride: ""
 fullnameOverride: ""

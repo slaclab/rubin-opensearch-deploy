@@ -83,10 +83,10 @@ config:
           admin_dn:
           - CN=timothy noble, L=RAL, OU=CLRC, O=eScience, C=UK
         cache:
-          ttl_mintues: '60'
+          ttl_minutes: '60'
         
-        allow_unsafe_democertificates: true
-        allow_default_init_securityindex: true
+        allow_unsafe_democertificates: false
+        allow_default_init_securityindex: false
         audit.type: internal_opensearch
         enable_snapshot_restore_privilege: true
         check_snapshot_restore_write_privileges: true
@@ -125,7 +125,7 @@ extraEnvs:
 - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: opensearch-admin-pw
+      name: usdf-opensearch-admin-pw
       key: password
 
 # Allows you to load environment variables from kubernetes secret or config map
@@ -141,12 +141,11 @@ envFrom: []
 secretMounts:
   - name: hostcert
     secretName: usdf-opensearch-hostcert
-    path: /etc/grid-security/hostcert.pem
-    subPath: hostcert.pem
+    path: /usr/share/opensearch/config/hostcert.pem
+
   - name: hostkey
     secretName: usdf-opensearch-hostkey
-    path: /etc/grid-security/hostkey.pem
-    subPath: hostkey.pem
+    path: /usr/share/opensearch/config/hostkey.pem
 
 hostAliases: []
 # - ip: "127.0.0.1"
@@ -320,9 +319,9 @@ service:
   # Omitting these values will let the service fall back to whatever the CNI dictates the defaults
   # should be
   #
-  # ipFamilyPolicy: SingleStack
-  # ipFamilies:
-  # - IPv4
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+  - IPv4
   nodePort: ""
   annotations: {}
   httpPortName: http

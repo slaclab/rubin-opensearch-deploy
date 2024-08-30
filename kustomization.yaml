@@ -19,9 +19,9 @@ secretGenerator:
 
   - name: usdf-opensearch-admin-pw
     files:
-    - opensearch/etc/.secrets/admin-pw
-    literals:
-    - username=admin
+    - password=opensearch/etc/.secrets/admin-pw
+    - username=opensearch/etc/.secrets/admin-user
+    - cookie=opensearch/etc/.secrets/cookie
 
   - name: usdf-opensearch-tls
     files:

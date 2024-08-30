@@ -27,3 +27,7 @@ secretGenerator:
     files:
     - cert=opensearch/etc/.secrets/hostcert.pem
     - key=opensearch/etc/.secrets/hostkey.pem
+
+  - name: usdf-cacert
+    files:
+    - opensearch/etc/.secrets/root-ca.pem

@@ -5,7 +5,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-opensearchHosts: "https://opensearch-cluster-master.opensearch-system.svc.cluster.local:9200"
+opensearchHosts: "https://rubinobs-opensearch-worker.opensearch-system.svc.cluster.local:9200"
 replicaCount: 1
 
 image:
@@ -173,7 +173,7 @@ service:
   httpPortName: http
 
 ingress:
-  enabled: true
+  enabled: false
   # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
   # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
   ingressClassName: nginx

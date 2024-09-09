@@ -5,6 +5,7 @@ resources:
 - helm-opensearch-master.yaml
 - helm-opensearch-worker.yaml
 - helm-opensearch-dashboard.yaml
+- helm-opensearch-coordinator.yaml
 
 patches : []
 

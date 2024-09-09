@@ -8,6 +8,8 @@ helm:
 opensearch:
 	helm template opensearch opensearch/opensearch --version=${OPENSEARCH_VERSION} --values=values-opensearch-master.yaml > helm-opensearch-master.yaml
 	helm template opensearch opensearch/opensearch --version=${OPENSEARCH_VERSION} --values=values-opensearch-worker.yaml > helm-opensearch-worker.yaml
+	helm template opensearch opensearch/opensearch --version=${OPENSEARCH_VERSION} --values=values-opensearch-coordinator.yaml > helm-opensearch-coordinator.yaml
+
 
 dashboard:
 	helm template opensearch opensearch/opensearch-dashboards --version=${OPENSEARCH_DASHBOARD_VERSION} --values=values-opensearch-dashboard.yaml > helm-opensearch-dashboard.yaml

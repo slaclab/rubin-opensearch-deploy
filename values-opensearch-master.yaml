@@ -48,7 +48,7 @@ config:
   #   rootLogger.appenderRef.console.ref = console
   opensearch.yml: |
     cluster.name: rubinobs-opensearch
-    cluster.initial_cluster_manager_nodes: rubinobs-opensearch-master-0 rubinobs-opensearch-master-1 rubinobs-opensearch-master-2
+    cluster.initial_cluster_manager_nodes: ["rubinobs-opensearch-master-0", "rubinobs-opensearch-master-1", "rubinobs-opensearch-master-2"]
 
     # Bind to all interfaces because we don't know what IP address Docker will assign to us.
     network.host: 0.0.0.0
@@ -82,12 +82,12 @@ config:
 
         authcz:
           admin_dn:
-          - CN=timothy noble, L=RAL, OU=CLRC, O=eScience, C=UK
+          - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
         cache:
           ttl_minutes: '60'
         
         allow_unsafe_democertificates: false
-        allow_default_init_securityindex: false
+        allow_default_init_securityindex: true
         audit.type: internal_opensearch
         enable_snapshot_restore_privilege: true
         check_snapshot_restore_write_privileges: true
@@ -128,6 +128,8 @@ extraEnvs:
     secretKeyRef:
       name: usdf-opensearch-admin-pw
       key: password
+- name: DISABLE_INSTALL_DEMO_CONFIG
+  value: "true"
 
 # Allows you to load environment variables from kubernetes secret or config map
 envFrom: []
@@ -489,7 +491,7 @@ lifecycle: {}
 #         INDEX_PATTERN="logstash-*"
 #         SHARD_COUNT=8
 #         REPLICA_COUNT=1
-#         ES_URL=http://localhost:9200
+#         ES_URL=https://usdf-opensearch.slac.stanford.edu:9200
 #         while [[ "$(curl -s -o /dev/null -w '%{http_code}\n' $ES_URL)" != "200" ]]; do sleep 1; done
 #         curl -XPUT "$ES_URL/_template/$TEMPLATE_NAME" -H 'Content-Type: application/json' -d'{"index_patterns":['\""$INDEX_PATTERN"\"'],"settings":{"number_of_shards":'$SHARD_COUNT',"number_of_replicas":'$REPLICA_COUNT'}}'
 

@@ -22,7 +22,7 @@ roles:
 replicas: 3
 
 # if not set, falls back to parsing .Values.imageTag, then .Chart.appVersion.
-majorVersion: "2.15.0"
+majorVersion: "2.16.0"
 
 global:
   # Set if you want to change the default docker registry, e.g. a private one.

@@ -47,6 +47,7 @@ metadata:
 data:
   opensearch.yml: |
     cluster.name: rubinobs-opensearch
+    cluster.initial_cluster_manager_nodes: ["rubinobs-opensearch-master-0", "rubinobs-opensearch-master-1", "rubinobs-opensearch-master-2"]
     
     # Bind to all interfaces because we don't know what IP address Docker will assign to us.
     network.host: 0.0.0.0
@@ -80,11 +81,11 @@ data:
     
         authcz:
           admin_dn:
-          - CN=timothy noble, L=RAL, OU=CLRC, O=eScience, C=UK
+          - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
         cache:
-          ttl_mintues: '60'
+          ttl_minutes: '60'
         
-        allow_unsafe_democertificates: true
+        allow_unsafe_democertificates: false
         allow_default_init_securityindex: true
         audit.type: internal_opensearch
         enable_snapshot_restore_privilege: true
@@ -169,6 +170,8 @@ metadata:
     {}
 spec:
   type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  ipFamilies: [IPv4]
   selector:
     app.kubernetes.io/name: opensearch
     app.kubernetes.io/instance: opensearch
@@ -222,7 +225,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: rubinobs-opensearch-worker
   annotations:
-    majorVersion: "2.15.0"
+    majorVersion: "2.16.0"
 spec:
   serviceName: rubinobs-opensearch-worker-headless
   selector:
@@ -260,7 +263,7 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: rubinobs-opensearch-worker
       annotations:
-        configchecksum: 3f46787ca257c51ccc6476fb03209938ec440382733d4dec17e6327182a0ed7
+        configchecksum: 30620ea27ff6cc9ce4742c4d03212b177abe9755413113339476c8c981b1141
     spec:
       securityContext:
         fsGroup: 1000
@@ -292,10 +295,13 @@ spec:
         name: config-emptydir
       - name: hostcert
         secret:
-          secretName: opensearch_hostcert
+          secretName: usdf-opensearch-hostcert
       - name: hostkey
         secret:
-          secretName: opensearch_hostkey.pem
+          secretName: usdf-opensearch-hostkey
+      - name: root-ca
+        secret:
+          secretName: usdf-cacert
       enableServiceLinks: true
       initContainers:
       - name: fsgroup-volume
@@ -395,21 +401,24 @@ spec:
         - name: OPENSEARCH_JAVA_OPTS
           value: "-Xmx512M -Xms512M"
         - name: node.roles
-          value: "ingest,data,"
+          value: "ingest,data,search,"
         - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: opensearch-admin-pw
+              name: usdf-opensearch-admin-pw
         volumeMounts:
         - name: "rubinobs-opensearch-worker"
           mountPath: /usr/share/opensearch/data
         - name: hostcert
-          mountPath: /etc/grid-security/hostcert.pem
+          mountPath: /usr/share/opensearch/config/esnode.pem
           subPath: hostcert.pem
         - name: hostkey
-          mountPath: /etc/grid-security/hostkey.pem
+          mountPath: /usr/share/opensearch/config/esnode-key.pem
           subPath: hostkey.pem
+        - name: root-ca
+          mountPath: /usr/share/opensearch/config/root-ca.pem
+          subPath: root-ca.pem
         - name: config-emptydir
           mountPath: /usr/share/opensearch/config/opensearch.yml
           subPath: opensearch.yml

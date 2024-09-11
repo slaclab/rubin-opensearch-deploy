@@ -33,11 +33,10 @@ get-secrets:
 	mkdir -p opensearch/etc/.secrets
 	vault kv get --field=hostcert secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/hostcert.pem
 	vault kv get --field=hostkey secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/hostkey.pem
-	vault kv get --field=admin-pw secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/admin-pw
-	vault kv get --field=admin-user secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/admin-user
+	vault kv get --field=password secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/password
+	vault kv get --field=admin-user secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/username
 	vault kv get --field=cookie secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/cookie
 	vault kv get --field=usdf-cacert secret/rubin/usdf-opensearch/opensearch > opensearch/etc/.secrets/root-ca.pem
-
 
 clean-secrets:
 	rm -rf opensearch/etc/.secrets

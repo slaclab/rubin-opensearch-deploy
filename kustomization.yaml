@@ -5,7 +5,7 @@ resources:
 - helm-opensearch-master.yaml
 - helm-opensearch-worker.yaml
 - helm-opensearch-dashboard.yaml
-- helm-opensearch-coordinator.yaml
+#- helm-opensearch-coordinator.yaml
 
 patches : []
 
@@ -20,9 +20,9 @@ secretGenerator:
 
   - name: usdf-opensearch-admin-pw
     files:
-    - password=opensearch/etc/.secrets/admin-pw
-    - username=opensearch/etc/.secrets/admin-user
-    - cookie=opensearch/etc/.secrets/cookie
+    - opensearch/etc/.secrets/password
+    - opensearch/etc/.secrets/username
+    - opensearch/etc/.secrets/cookie
 
   - name: usdf-opensearch-tls
     files:

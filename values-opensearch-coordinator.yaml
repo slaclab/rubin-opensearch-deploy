@@ -67,19 +67,22 @@ config:
 
         ssl:
           transport:
-            pemcert_filepath: esnode.pem
-            pemkey_filepath: esnode-key.pem
+            pemcert_filepath: hostcert.pem
+            pemkey_filepath: hostkey.pem
             pemtrustedcas_filepath: root-ca.pem
             enforce_hostname_verification: 'false'
             resolve_hostname: 'true'
 
           http:
             enabled: 'true'
-            pemcert_filepath: esnode.pem
-            pemkey_filepath: esnode-key.pem
+            pemcert_filepath: hostcert.pem
+            pemkey_filepath: hostkey.pem
             pemtrustedcas_filepath: root-ca.pem
             clientauth_mode: OPTIONAL
 
+        nodes_dn:
+        - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
+        
         authcz:
           admin_dn:
           - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
@@ -141,15 +144,17 @@ envFrom: []
 # A list of secrets and their paths to mount inside the pod
 # This is useful for mounting certificates for security and for mounting
 # the X-Pack license
-secretMounts: 
+secretMounts:
   - name: hostcert
     secretName: usdf-opensearch-hostcert
-    path: /usr/share/opensearch/config/esnode.pem
+    path: /usr/share/opensearch/config/hostcert.pem
     subPath: hostcert.pem
+
   - name: hostkey
     secretName: usdf-opensearch-hostkey
-    path: /usr/share/opensearch/config/esnode-key.pem
+    path: /usr/share/opensearch/config/hostkey.pem
     subPath: hostkey.pem
+  
   - name: root-ca
     secretName: usdf-cacert
     path: /usr/share/opensearch/config/root-ca.pem
@@ -180,7 +185,7 @@ opensearchJavaOpts: "-Xmx512M -Xms512M"
 
 resources:
   requests:
-    cpu: "1000m"
+    cpu: "100m"
     memory: "2Gi"
 
 initResources: {}
@@ -248,7 +253,7 @@ persistence:
   # storageClass: "-"
   accessModes:
   - ReadWriteOnce
-  size: 20Gi
+  size: 10Gi
   annotations: {}
 
 extraVolumes: []
@@ -432,10 +437,10 @@ tolerations: []
 # Enabling this will publically expose your OpenSearch instance.
 # Only enable this if you have security enabled on your cluster
 ingress:
-  enabled: false
+  enabled: true
   # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
   # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
-  # ingressClassName: nginx
+  ingressClassName: nginx
   annotations: 
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
@@ -453,13 +458,8 @@ ingress:
   # kubernetes.io/tls-acme: "true"
 
   hosts:
-  - host: usdf-opensearch.slac.stanford.edu
-    paths:
-    - path: /
-      backend:
-        serviceName: "usdf-opensearch"
-        servicePort: "9200"
-    
+    - usdf-opensearch.slac.stanford.edu
+  path: /
 
 nameOverride: ""
 fullnameOverride: ""

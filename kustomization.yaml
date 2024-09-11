@@ -3,9 +3,9 @@ namespace: opensearch-system
 resources:
 - ns.yaml
 - helm-opensearch-master.yaml
-#- helm-opensearch-worker.yaml
-#- helm-opensearch-dashboard.yaml
-#- helm-opensearch-coordinator.yaml
+- helm-opensearch-worker.yaml
+- helm-opensearch-dashboard.yaml
+- helm-opensearch-coordinator.yaml
 
 patches : []
 

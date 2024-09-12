@@ -1,4 +1,4 @@
-clusterName: "rubinobs-opensearch"
+clusterName: "opensearch"
 nodeGroup: "master"
 
 # If discovery.type in the opensearch configuration is set to "single-node",
@@ -8,7 +8,7 @@ singleNode: false
 
 # The service that non master groups will try to connect to when joining the cluster
 # This should be set to clusterName + "-" + nodeGroup for your master group
-masterService: "rubinobs-opensearch-master"
+masterService: "opensearch-master"
 
 # OpenSearch roles that will be applied to this nodeGroup
 # These will be set as environment variable "node.roles". E.g. node.roles=master,ingest,data,remote_cluster_client
@@ -47,8 +47,8 @@ config:
   #   rootLogger.level = info
   #   rootLogger.appenderRef.console.ref = console
   opensearch.yml: |
-    cluster.name: rubinobs-opensearch
-    cluster.initial_cluster_manager_nodes: ["rubinobs-opensearch-master-0", "rubinobs-opensearch-master-1", "rubinobs-opensearch-master-2"]
+    cluster.name: opensearch
+    cluster.initial_cluster_manager_nodes: ["opensearch-master-0", "opensearch-master-1", "opensearch-master-2"]
 
     # Bind to all interfaces because we don't know what IP address Docker will assign to us.
     network.host: 0.0.0.0
@@ -81,11 +81,11 @@ config:
             clientauth_mode: OPTIONAL
 
         nodes_dn:
-        - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
+          CN=name ....
 
         authcz:
           admin_dn:
-          - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
+          CN=name ....
         cache:
           ttl_minutes: '60'
         
@@ -129,7 +129,7 @@ extraEnvs:
 - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: usdf-opensearch-admin-pw
+      name: opensearch-admin-pw
       key: password
 
 - name: DISABLE_INSTALL_DEMO_CONFIG
@@ -147,29 +147,19 @@ envFrom: []
 # the X-Pack license
 secretMounts:
   - name: hostcert
-    secretName: usdf-opensearch-hostcert
+    secretName: opensearch-hostcert
     path: /usr/share/opensearch/config/hostcert.pem
     subPath: hostcert.pem
 
   - name: hostkey
-    secretName: usdf-opensearch-hostkey
+    secretName: opensearch-hostkey
     path: /usr/share/opensearch/config/hostkey.pem
     subPath: hostkey.pem
   
   - name: root-ca
-    secretName: usdf-cacert
+    secretName: cacert
     path: /usr/share/opensearch/config/root-ca.pem
     subPath: root-ca.pem
-
-  - name: internal-users
-    secretName: usdf-opensearch-internal-users
-    path: /usr/share/opensearch/config/opensearch-security/internal_users.yml
-    subPath: internal_users.yml
-
-  - name: roles
-    secretName: usdf-opensearch-roles
-    path: /usr/share/opensearch/config/opensearch-security/roles.yml
-    subPath: roles.yml
 
 hostAliases: []
 # - ip: "127.0.0.1"
@@ -448,28 +438,16 @@ tolerations: []
 # Enabling this will publically expose your OpenSearch instance.
 # Only enable this if you have security enabled on your cluster
 ingress:
-  enabled: true
+  enabled: false
   # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
   # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
   ingressClassName: nginx
   annotations: 
     kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
-    nginx.ingress.kubernetes.io/auth-tls-verify-client: optional
-    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-    nginx.ingress.kubernetes.io/client-body-buffer-size: 10m
-    nginx.ingress.kubernetes.io/client_max_body_size: 10m
-    nginx.ingress.kubernetes.io/proxy-body-size: 10m
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "360"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "360"
-    nginx.ingress.kubernetes.io/secure-backends: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-
   # kubernetes.io/tls-acme: "true"
 
   hosts:
-    - usdf-opensearch.slac.stanford.edu
+    - localhost
   path: /
 
 nameOverride: ""

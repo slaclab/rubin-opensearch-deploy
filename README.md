@@ -14,3 +14,13 @@ This framework uses kustomize to allow modification of Helm template outputs fro
 
 If any updates are made to the values-*.yaml files, ensure that the delpoyments are updated using
 > make opensearch
+
+
+There are a number of config files that can be mounted into Opensearch to override defaults. These are found in the Vault and can be gotten by running:
+> make get-config
+they can then be edited and updated in the Vault with 
+> make put-config
+and will be uopdated on the cluster next time you run 
+> make apply
+
+These config values currently ensure the admin account is not default, as well as creating a rucio and panda user that can be used to write to indexes that start with those names (e.g. rucio-*)

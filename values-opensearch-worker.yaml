@@ -13,7 +13,7 @@ masterService: "rubinobs-opensearch-master"
 # OpenSearch roles that will be applied to this nodeGroup
 # These will be set as environment variable "node.roles". E.g. node.roles=master,ingest,data,remote_cluster_client
 roles:
-#- cluster_manager
+# cluster_manager
 - ingest
 - data
 #- search
@@ -22,7 +22,7 @@ roles:
 replicas: 3
 
 # if not set, falls back to parsing .Values.imageTag, then .Chart.appVersion.
-majorVersion: "2.15.0"
+majorVersion: "2.16.0"
 
 global:
   # Set if you want to change the default docker registry, e.g. a private one.
@@ -48,6 +48,7 @@ config:
   #   rootLogger.appenderRef.console.ref = console
   opensearch.yml: |
     cluster.name: rubinobs-opensearch
+    cluster.initial_cluster_manager_nodes: ["rubinobs-opensearch-master-0", "rubinobs-opensearch-master-1", "rubinobs-opensearch-master-2"]
 
     # Bind to all interfaces because we don't know what IP address Docker will assign to us.
     network.host: 0.0.0.0
@@ -66,26 +67,29 @@ config:
 
         ssl:
           transport:
-            pemcert_filepath: esnode.pem
-            pemkey_filepath: esnode-key.pem
+            pemcert_filepath: hostcert.pem
+            pemkey_filepath: hostkey.pem
             pemtrustedcas_filepath: root-ca.pem
             enforce_hostname_verification: 'false'
             resolve_hostname: 'true'
 
           http:
             enabled: 'true'
-            pemcert_filepath: esnode.pem
-            pemkey_filepath: esnode-key.pem
+            pemcert_filepath: hostcert.pem
+            pemkey_filepath: hostkey.pem
             pemtrustedcas_filepath: root-ca.pem
             clientauth_mode: OPTIONAL
 
+        nodes_dn:
+        - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
+        
         authcz:
           admin_dn:
-          - CN=timothy noble, L=RAL, OU=CLRC, O=eScience, C=UK
+          - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
         cache:
-          ttl_mintues: '60'
+          ttl_minutes: '60'
         
-        allow_unsafe_democertificates: true
+        allow_unsafe_democertificates: false
         allow_default_init_securityindex: true
         audit.type: internal_opensearch
         enable_snapshot_restore_privilege: true
@@ -125,8 +129,10 @@ extraEnvs:
 - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: opensearch-admin-pw
+      name: usdf-opensearch-admin-pw
       key: password
+- name: DISABLE_INSTALL_DEMO_CONFIG
+  value: "true"
 
 # Allows you to load environment variables from kubernetes secret or config map
 envFrom: []
@@ -138,15 +144,31 @@ envFrom: []
 # A list of secrets and their paths to mount inside the pod
 # This is useful for mounting certificates for security and for mounting
 # the X-Pack license
-secretMounts: 
+secretMounts:
   - name: hostcert
-    secretName: opensearch_hostcert
-    path: /etc/grid-security/hostcert.pem
+    secretName: usdf-opensearch-hostcert
+    path: /usr/share/opensearch/config/hostcert.pem
     subPath: hostcert.pem
+
   - name: hostkey
-    secretName: opensearch_hostkey.pem
-    path: /etc/grid-security/hostkey.pem
+    secretName: usdf-opensearch-hostkey
+    path: /usr/share/opensearch/config/hostkey.pem
     subPath: hostkey.pem
+  
+  - name: root-ca
+    secretName: usdf-cacert
+    path: /usr/share/opensearch/config/root-ca.pem
+    subPath: root-ca.pem
+  
+  - name: internal-users
+    secretName: usdf-opensearch-internal-users
+    path: /usr/share/opensearch/config/opensearch-security/internal_users.yml
+    subPath: internal_users.yml
+
+  - name: roles
+    secretName: usdf-opensearch-roles
+    path: /usr/share/opensearch/config/opensearch-security/roles.yml
+    subPath: roles.yml
 
 hostAliases: []
 # - ip: "127.0.0.1"
@@ -157,7 +179,7 @@ hostAliases: []
 image:
   repository: "opensearchproject/opensearch"
   # override image tag, which is .Chart.AppVersion by default
-  tag: "2.15.0"
+  tag: "2.16.0"
   pullPolicy: "IfNotPresent"
 
 podAnnotations: {}
@@ -174,7 +196,7 @@ opensearchJavaOpts: "-Xmx512M -Xms512M"
 resources:
   requests:
     cpu: "100m"
-    memory: "2Gi"
+    memory: "8Gi"
 
 initResources: {}
 #  limits:
@@ -320,9 +342,9 @@ service:
   # Omitting these values will let the service fall back to whatever the CNI dictates the defaults
   # should be
   #
-  # ipFamilyPolicy: SingleStack
-  # ipFamilies:
-  # - IPv4
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+  - IPv4
   nodePort: ""
   annotations: {}
   httpPortName: http
@@ -425,10 +447,10 @@ tolerations: []
 # Enabling this will publically expose your OpenSearch instance.
 # Only enable this if you have security enabled on your cluster
 ingress:
-  enabled: false
+  enabled: true
   # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
   # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
-  # ingressClassName: nginx
+  ingressClassName: nginx
   annotations: 
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
@@ -446,13 +468,8 @@ ingress:
   # kubernetes.io/tls-acme: "true"
 
   hosts:
-  - host: usdf-opensearch.slac.stanford.edu
-    paths:
-    - path: /
-      backend:
-        serviceName: "usdf-opensearch"
-        servicePort: "9200"
-    
+    - usdf-opensearch.slac.stanford.edu
+  path: /
 
 nameOverride: ""
 fullnameOverride: ""
@@ -483,7 +500,7 @@ lifecycle: {}
 #         INDEX_PATTERN="logstash-*"
 #         SHARD_COUNT=8
 #         REPLICA_COUNT=1
-#         ES_URL=http://localhost:9200
+#         ES_URL=https://usdf-opensearch.slac.stanford.edu:9200
 #         while [[ "$(curl -s -o /dev/null -w '%{http_code}\n' $ES_URL)" != "200" ]]; do sleep 1; done
 #         curl -XPUT "$ES_URL/_template/$TEMPLATE_NAME" -H 'Content-Type: application/json' -d'{"index_patterns":['\""$INDEX_PATTERN"\"'],"settings":{"number_of_shards":'$SHARD_COUNT',"number_of_replicas":'$REPLICA_COUNT'}}'
 

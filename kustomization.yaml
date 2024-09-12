@@ -5,6 +5,7 @@ resources:
 - helm-opensearch-master.yaml
 - helm-opensearch-worker.yaml
 - helm-opensearch-dashboard.yaml
+- helm-opensearch-coordinator.yaml
 
 patches : []
 
@@ -19,11 +20,35 @@ secretGenerator:
 
   - name: usdf-opensearch-admin-pw
     files:
-    - opensearch/etc/.secrets/admin-pw
-    literals:
-    - username=admin
+    - opensearch/etc/.secrets/password
+    - opensearch/etc/.secrets/username
+    - opensearch/etc/.secrets/cookie
 
   - name: usdf-opensearch-tls
     files:
     - cert=opensearch/etc/.secrets/hostcert.pem
     - key=opensearch/etc/.secrets/hostkey.pem
+
+  - name: usdf-cacert
+    files:
+    - opensearch/etc/.secrets/root-ca.pem
+  
+  - name: usdf-opensearch-internal-users
+    files:
+    - opensearch/etc/config/internal_users.yml
+  
+  - name: usdf-opensearch-allowlist
+    files:
+    - opensearch/etc/config/allowlist.yml
+
+  - name: usdf-opensearch-nodes-dn
+    files:
+    - opensearch/etc/config/nodes_dn.yml
+
+  - name: usdf-opensearch-roles
+    files:
+    - opensearch/etc/config/roles.yml
+
+  - name: usdf-opensearch-tenants
+    files:
+    - opensearch/etc/config/tenants.yml

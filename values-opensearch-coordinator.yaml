@@ -1,5 +1,5 @@
 clusterName: "rubinobs-opensearch"
-nodeGroup: "master"
+nodeGroup: "coordinator"
 
 # If discovery.type in the opensearch configuration is set to "single-node",
 # this should be set to "true"
@@ -13,13 +13,13 @@ masterService: "rubinobs-opensearch-master"
 # OpenSearch roles that will be applied to this nodeGroup
 # These will be set as environment variable "node.roles". E.g. node.roles=master,ingest,data,remote_cluster_client
 roles:
-- cluster_manager
+#- cluster_manager
 #- ingest
 #- data
 #- search
 #- ml
 
-replicas: 3
+replicas: 2
 
 # if not set, falls back to parsing .Values.imageTag, then .Chart.appVersion.
 majorVersion: "2.16.0"
@@ -82,7 +82,7 @@ config:
 
         nodes_dn:
         - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
-
+        
         authcz:
           admin_dn:
           - CN=usdf-opensearch.slac.stanford.edu,O=Stanford University,ST=California,C=US,DC=incommon,DC=org
@@ -131,7 +131,6 @@ extraEnvs:
     secretKeyRef:
       name: usdf-opensearch-admin-pw
       key: password
-
 - name: DISABLE_INSTALL_DEMO_CONFIG
   value: "true"
 

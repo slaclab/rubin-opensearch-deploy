@@ -5,13 +5,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-opensearchHosts: "https://opensearch-cluster-master.opensearch-system.svc.cluster.local:9200"
+opensearchHosts: "https://rubinobs-opensearch-master.opensearch-system.svc.cluster.local:9200"
 replicaCount: 1
 
 image:
   repository: "opensearchproject/opensearch-dashboards"
   # override image tag, which is .Chart.AppVersion by default
-  tag: "2.15.0"
+  tag: "2.16.0"
   pullPolicy: "IfNotPresent"
 
 startupProbe:
@@ -140,7 +140,7 @@ opensearchDashboardsYml:
 priorityClassName: ""
 
 opensearchAccount:
-  secret: opensearch-admin-pw
+  secret: usdf-opensearch-admin-pw
   keyPassphrase:
     enabled: false
 
@@ -173,7 +173,7 @@ service:
   httpPortName: http
 
 ingress:
-  enabled: true
+  enabled: false
   # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
   # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
   ingressClassName: nginx
@@ -198,16 +198,16 @@ ingress:
     paths:
     - path: /
       backend:
-        serviceName: "rucio-opensearch-dashboard"
+        serviceName: "rubin-opensearch-dashboard"
         servicePort: ""  
   
 resources:
   requests:
-    cpu: "100m"
-    memory: "512M"
+    cpu: "200m"
+    memory: "1024M"
   limits:
-    cpu: "100m"
-    memory: "512M"
+    cpu: "300m"
+    memory: "2048M"
 
 autoscaling:
   # This requires metrics server to be installed, to install use kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml

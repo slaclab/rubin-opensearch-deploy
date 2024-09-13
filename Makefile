@@ -42,11 +42,11 @@ get-secrets:
 
 get-config:
 	mkdir -p opensearch/etc/config
-	vault kv get --field=internal_roles secret/rubin/usdf-opensearch/config > opensearch/etc/config/internal_users.yml
+	vault kv get --field=internal_users secret/rubin/usdf-opensearch/config > opensearch/etc/config/internal_users.yml
 	vault kv get --field=roles secret/rubin/usdf-opensearch/config > opensearch/etc/config/roles.yml
 	vault kv get --field=allowlist secret/rubin/usdf-opensearch/config > opensearch/etc/config/allowlist.yml
 	vault kv get --field=tenants secret/rubin/usdf-opensearch/config > opensearch/etc/config/tenants.yml
-	vault kv get --field=roles secret/rubin/usdf-opensearch/config > opensearch/etc/config/roles.yml
+	vault kv get --field=nodes_dn secret/rubin/usdf-opensearch/config > opensearch/etc/config/nodes_dn.yml
 
 put-config:
 	vault kv put secret/rubin/usdf-opensearch/config internal_users=@opensearch/etc/config/internal_users.yml roles=@opensearch/etc/config/roles.yml allowlist=@opensearch/etc/config/allowlist.yml nodes_dn=@opensearch/etc/config/nodes_dn.yml tenants=@opensearch/etc/config/tenants.yml

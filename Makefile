@@ -1,5 +1,6 @@
-OPENSEARCH_VERSION:= 2.21.0
-OPENSEARCH_DASHBOARD_VERSION:= 2.19.1
+OPENSEARCH_VERSION:= 2.36.0
+OPENSEARCH_DASHBOARD_VERSION:= 2.32.0
+
 
 helm:
 	helm repo add opensearch https://opensearch-project.github.io/helm-charts/
@@ -20,6 +21,7 @@ run-dump:
 	kubectl kustomize .
 
 dump:  get-secrets opensearch dashboard run-dump
+
 
 run-apply:  
 	kubectl apply -k .
